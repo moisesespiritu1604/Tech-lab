@@ -1,0 +1,192 @@
+<div class="container mx-auto p-4">
+    <h2 class="text-3xl font-bold mb-6 text-gray-800">Gestión de Usuarios</h2>
+  
+    <!-- Buscador y Botón de Agregar -->
+    <div class="flex justify-between items-center mb-4">
+        <div class="relative w-2/3">
+        <input
+            type="text"
+            (input)="onSearch($event)"
+            placeholder="Buscar usuario por nombre o correo"
+            class="w-full border border-gray-300 rounded-full py-2 px-4 pl-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <div class="absolute top-2.5 left-3 text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l-4-4m0 0l4-4m-4 4h16" />
+            </svg>
+        </div>
+        </div>
+        <button
+        type="button"
+        (click)="openModal('add')"
+        class="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600"
+        >
+        + Agregar Usuario
+        </button>
+    </div>
+   
+    <!-- Tabla de Usuarios -->
+    <table class="table-auto w-full border-collapse border border-gray-300 bg-white rounded-lg shadow-lg">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="border p-4 text-left">ID</th>
+          <th class="border p-4 text-left">Nombre</th>
+          <th class="border p-4 text-left">Correo Electrónico</th>
+          <th class="border p-4 text-left">Rol</th>
+          <th class="border p-4 text-left">Avatar</th>
+          <th class="border p-4 text-left">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers" class="border-b hover:bg-gray-50">
+          <td class="border p-4">{{ user.id }}</td>
+          <td class="border p-4">{{ user.name }}</td>
+          <td class="border p-4">{{ user.email }}</td>
+          <td class="border p-4">{{ user.role }}</td>
+          <td class="border p-4">
+            <img [src]="user.avatar" alt="Avatar" class="w-12 h-12 rounded-full border">
+          </td>
+          <td class="border p-2">
+            <div class="flex gap-6 pl-20">
+              <button
+                type="button"
+                (click)="openModal('edit',user)"
+                class="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600"
+              >
+                Editar
+              </button>
+              <button
+              type="button"
+              (click)="confirmDelete(user)"
+              class="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600"
+                >
+              Eliminar
+                </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="showAddEditModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+          <!-- Encabezado -->
+          <div class="flex justify-between items-center border-b pb-2">
+            <h2 class="text-xl font-bold text-gray-800">{{ isEditing ? 'Editar Usuario' : 'Agregar Usuario' }}</h2>
+            <button (click)="closeModal()" class="text-gray-500 hover:text-gray-800">
+              ✕
+            </button>
+          </div>
+      
+          <!-- Formulario -->
+          <form [formGroup]="userForm" (ngSubmit)="onSave()" class="mt-4">
+            <div class="grid grid-cols-1 gap-4">
+              <input
+                type="text"
+                formControlName="name"
+                placeholder="Nombre"
+                class="border p-2 rounded w-full"
+              />
+              <input
+                type="email"
+                formControlName="email"
+                placeholder="Correo Electrónico"
+                class="border p-2 rounded w-full"
+              />
+              <input
+                type="text"
+                formControlName="role"
+                placeholder="Rol"
+                class="border p-2 rounded w-full"
+              />
+              <input
+                type="text"
+                formControlName="avatar"
+                placeholder="URL del Avatar"
+                class="border p-2 rounded w-full"
+              />
+            </div>
+            <div class="flex justify-end gap-4 mt-6">
+              <button
+                type="button"
+                (click)="closeModal()"
+                class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              >
+                {{ isEditing ? 'Actualizar' : 'Agregar' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+    <!-- Modal de Confirmación -->
+    <div *ngIf="showConfirmModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+          <!-- Encabezado -->
+          <div class="flex justify-between items-center border-b pb-2">
+            <h2 class="text-xl font-bold text-gray-800">Eliminar</h2>
+            <button (click)="closeModal()" class="text-gray-500 hover:text-gray-800">
+              ✕
+            </button>
+          </div>
+      
+          <!-- Contenido -->
+          <div class="flex flex-col items-center mt-4">
+            <!-- Icono -->
+            <div class="bg-yellow-100 text-yellow-500 p-3 rounded-full">
+                <svg _ngcontent-ng-c2452039226="" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" class="w-8 h-8"><path _ngcontent-ng-c2452039226="" d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path></svg>
+            </div>
+      
+            <!-- Mensaje -->
+            <p class="text-gray-700 text-center mt-4">
+              ¿Estás seguro que deseas eliminar a <span class="font-bold">{{ userToDelete?.name }}</span>? <br>
+              Esta acción no se puede deshacer.
+            </p>
+          </div>
+      
+          <!-- Botones -->
+          <div class="flex justify-end gap-4 mt-6">
+            <button
+              (click)="closeModal()"
+              class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition duration-200"
+            >
+              Cancelar
+            </button>
+            <button
+              (click)="onDelete(userToDelete?.id)"
+              class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-200"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+    </div>
+      
+      
+    <!-- Controles de Paginación -->
+    <div class="flex justify-between items-center mt-6">
+      <button
+        (click)="prevPage()"
+        [disabled]="currentPage === 1"
+        class="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600 disabled:opacity-50"
+      >
+        Anterior
+      </button>
+      <div>
+        Página {{ currentPage }} de {{ totalPages }}
+      </div>
+      <button
+        (click)="nextPage()"
+        [disabled]="currentPage === totalPages"
+        class="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600 disabled:opacity-50"
+      >
+        Siguiente
+      </button>
+    </div>
+  </div>
+  
